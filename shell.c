@@ -20,6 +20,8 @@ int tryMyCommands(char** inputArgs);
 void setCommand(char** inputArgs);
 void cdCommand(char** inputArgs);
 void jobsCommand(char** inputArgs);
+void printPath();
+void printUser();
 
 int main(int argc, char **argv, char **envp)
 {
@@ -36,8 +38,6 @@ int main(int argc, char **argv, char **envp)
   while(quit){
 
     printAndGet(input);
-
-    printf("%s", input);
 
     formatInput(input, inputArgs);
 
@@ -63,7 +63,7 @@ void printAndGet(char* input)
   char* pwd  = getenv("PWD");
   char* temp = "";
 
-  printf("%s:%s$", user, pwd);
+  printf("\n%s:%s$", user, pwd);
 
   size_t lengthOfInput = 0;
   ssize_t charsRead;
@@ -79,10 +79,20 @@ void printAndGet(char* input)
 
 void formatInput(char* input, char** inputArgs)
 {
+  //first add a space to the end of the input incase the user did not.
+  int inputLength;
+  inputLength = strlen(input); /* its length */
+  printf("inputLength: %d\n", inputLength);
+  input[inputLength] = ' '; /* insert a space */
+  input[inputLength+1] = ' ';
+  input[inputLength+2]= '\0'; /* strings need to be terminated in a null */
+  inputLength = strlen(input);
+  printf("inputLength: %d\n", inputLength);
+
   int i;
   for(i = 0 ; i < INPUT_ARG_MAX ; i++)
   {
-    inputArgs[i] = strsep(&input, " ");\
+    inputArgs[i] = strsep(&input, " ");
     //When no delimiter is found, the token is taken to be the whole String
     //and the return value is NULL. This means the parsing is complete.
     if(inputArgs[i] == NULL)
@@ -96,7 +106,7 @@ void formatInput(char* input, char** inputArgs)
 
 int tryMyCommands(char** inputArgs)
 {
-  int numberOfCommands = 5;
+  int numberOfCommands = 7;
   int matchedString = -1;
   char* myCommands[numberOfCommands];
 
@@ -106,6 +116,8 @@ int tryMyCommands(char** inputArgs)
   myCommands[2] = "jobs";
   myCommands[3] = "quit";
   myCommands[4] = "exit";
+  myCommands[5] = "PATH";
+  myCommands[6] = "USER";
 
   int i;
   for(i=0;i<numberOfCommands;i++)
@@ -128,6 +140,12 @@ int tryMyCommands(char** inputArgs)
       return 1;
     case 4:
       return 1;
+    case 5:
+      printPath();
+      return 0;
+    case 6:
+      printUser();
+      return 0;
     default:
       break;
   }
@@ -136,7 +154,17 @@ int tryMyCommands(char** inputArgs)
 
 void setCommand(char** inputArgs)
 {
-  printf("Congrats, you're in setCommand\n");
+  //Need to seperate the input. Valid form is PATH=xxx
+  char* envVariable;
+  char* envCommand;
+  int i;
+
+  envVariable = strsep(&inputArgs[1], "=");
+  envCommand = strsep(&inputArgs[1], "\0");
+
+  setenv(envVariable, envCommand, 1);
+
+  //printf("Congrats, you're in setCommand\n");
 }
 
 void cdCommand(char** inputArgs)
@@ -147,4 +175,16 @@ void cdCommand(char** inputArgs)
 void jobsCommand(char** inputArgs)
 {
   printf("Congrats, you're in jobsCommand\n");
+}
+
+void printPath()
+{
+  char* path = getenv("PATH");
+  printf("%s", path);
+}
+
+void printUser()
+{
+  char* user = getenv("USER");
+  printf("Current User: %s", user);
 }
